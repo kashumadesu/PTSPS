@@ -53,10 +53,10 @@ void registerUser(struct User users[], int *numUsers) {
     printf("Registration successful.\n");
 
     char cont;
-    printf("Do you want to continue? (y/n): ");
+    printf("Do you want to continue? (Y/N): ");
     scanf(" %c", &cont);
 
-    if (cont != 'y') {
+    if (cont != 'Y' && cont != 'y') {
         printf("Exiting...\n");
         exit(0);
     }
