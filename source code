@@ -1,0 +1,166 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_USERS 100
+#define MOTORBIKE_FEE 20.0
+#define CAR_FEE 30.0
+
+enum VehicleType {
+    MOTORBIKE,
+    CAR
+};
+
+struct User {
+    char username[50];
+    char password[50];
+    char fullName[100];
+    char licensePlate[20];
+    enum VehicleType vehicleType;
+};
+
+void clearScreen() {
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+void registerUser(struct User users[], int *numUsers) {
+    struct User newUser;
+
+    clearScreen();
+
+    printf("Welcome to Parking Ticketing System - Registration\n");
+    printf("--------------------------------------------------\n");
+
+    printf("Enter full name: ");
+    scanf(" %[^\n]s", newUser.fullName);
+
+    printf("Enter password: ");
+    scanf("%s", newUser.password);
+
+    printf("Enter your license plate number: ");
+    scanf("%s", newUser.licensePlate);
+
+    printf("Enter your vehicle type (0 for Motorbike, 1 for Car): ");
+    scanf("%d", (int *)&newUser.vehicleType);
+
+    users[*numUsers] = newUser;
+    (*numUsers)++;
+
+    printf("Registration successful.\n");
+
+    char cont;
+    printf("Do you want to continue? (y/n): ");
+    scanf(" %c", &cont);
+
+    if (cont != 'y') {
+        printf("Exiting...\n");
+        exit(0);
+    }
+}
+
+int loginUser(struct User users[], int numUsers, char *fullName, char *password) {
+    for (int i = 0; i < numUsers; i++) {
+        if (strcmp(users[i].fullName, fullName) == 0 && strcmp(users[i].password, password) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void makePayment(struct User *currentUser) {
+    float parkingFee;
+    if (currentUser->vehicleType == MOTORBIKE) {
+        parkingFee = MOTORBIKE_FEE;
+    } else {
+        parkingFee = CAR_FEE;
+    }
+
+    printf("Parking Fee: %.2f PHP\n", parkingFee);
+
+    float payment;
+    printf("Enter the payment amount: ");
+    scanf("%f", &payment);
+
+    if (payment >= parkingFee) {
+        float change = payment - parkingFee;
+
+        printf("\nBreakdown of Payment:");
+        printf("\n---------------------");
+        printf("\nParking Fee: %.2f PHP", parkingFee);
+        printf("\nPayment: %.2f PHP", payment);
+        printf("\nChange: %.2f PHP\n", change);
+        printf("\nPayment successful. Thank you!\n");
+    } else {
+        printf("\nInsufficient payment. Please enter an amount equal to or greater than the parking fee.\n");
+        makePayment(currentUser);
+    }
+}
+
+int main() {
+    struct User users[MAX_USERS];
+    int numUsers = 0;
+    int currentUserIndex = -1;
+    char choice;
+
+    while (1) {
+        clearScreen();
+
+        printf("Welcome to Parking Ticketing System\n");
+        printf("1. Register\n");
+        printf("2. Login\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf(" %c", &choice);
+
+        switch (choice) {
+            case '1':
+                registerUser(users, &numUsers);
+                break;
+            case '2':
+                {
+                    char fullName[100], password[50];
+                    int loginAttempt = 0;
+                    do {
+                        if (loginAttempt > 0) {
+                            printf("Invalid full name or password. Please try again.\n");
+                        }
+                        clearScreen();
+                        printf("Welcome to Parking Ticketing System - Login\n");
+                        printf("-------------------------------------------\n");
+                        printf("Enter full name: ");
+                        scanf(" %[^\n]s", fullName);
+                        printf("Enter password: ");
+                        scanf("%s", password);
+                        loginAttempt++;
+                    } while (loginUser(users, numUsers, fullName, password) == -1);
+                    
+                    currentUserIndex = loginUser(users, numUsers, fullName, password);
+                    printf("Login successful.\n");
+
+                    struct User *currentUser = &users[currentUserIndex];
+                    printf("\n--- Parking Ticket ---\n");
+                    printf("Full Name: %s\n", currentUser->fullName);
+                    printf("License Plate: %s\n", currentUser->licensePlate);
+                    printf("Vehicle Type: %s\n", currentUser->vehicleType == MOTORBIKE ? "Motorbike" : "Car");
+
+                    makePayment(currentUser);
+
+                    printf("Press enter to continue...");
+                    getchar();
+                    getchar();
+                }
+                break;
+            case '3':
+                printf("Exiting...\n");
+                return 0;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    }
+
+    return 0;
+}
